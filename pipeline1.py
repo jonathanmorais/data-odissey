@@ -150,13 +150,13 @@ def great_expectations():
 ws = WorkflowService(host="https://localhost:2746", verify_ssl=False, token=TOKEN)
 w = Workflow("generate-expectations", ws, namespace="argo")
 
-context_task = Task("data-context", generate_faker_data, image="lambertsbennett/argo-ge:v1", 
-                    output_artifacts = [OutputArtifact(name="ContextData", path="FakerData", path="chapter1/data/faker_test.csv")])
+generate_task = Task("faker-context", generate_faker_data, image="lambertsbennett/argo-ge:v1", 
+                    output_artifacts = [OutputArtifact(name="FakerData", path="FakerData", path="chapter1/data/faker_test.csv")])
 
 ge_task = Task("great-expectations-val", great_expectations, image="lambertsbennett/argo-ge:v1", 
-                    input_artifacts = [InputArtifact(name="ContextData", path="chapter1/data/avocado_test.csv", from_task="data-context", artifact_name="avocadoData")])
+                    input_artifacts = [InputArtifact(name="FakerData", path="chapter1/data/faker_test.csv", from_task="faker-context", artifact_name="avocadoData")])
 
-context_task >> ge_task
+generate_task >> ge_task
 
-w.add_tasks(context_task, ge_task)
+w.add_tasks(generate_task, ge_task)
 w.submit()
